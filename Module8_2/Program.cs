@@ -2,50 +2,60 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Module8
 {
     class Program
     {
-        const string SettingsFileName = "Settings.cfg";
         static void Main(string[] args)
         {
-            WriteValues();
-            ReadValues();
-        }
+            Pet pet = new Pet("Gerda", 2);
+            Console.WriteLine("Объект создан");
+            Console.WriteLine();
 
-        static void WriteValues()
-        {
-            using (BinaryWriter bw = new BinaryWriter(File.Open(SettingsFileName, FileMode.Create)))
+            BinaryFormatter bf = new BinaryFormatter();
+            try
             {
-                bw.Write(20.666F);
-                bw.Write(@"Text string");
-                bw.Write(55);
-                bw.Write(false);
-            }
-        }
-        static void ReadValues()
-        {
-            float FloatValue;
-            string StringValue;
-            int IntValue;
-            bool BoolValue;
-
-            if(File.Exists(SettingsFileName))
-            {
-                using(BinaryReader br = new BinaryReader(File.Open(SettingsFileName, FileMode.Open)))
+                using (FileStream fs = new FileStream("myPets.dat", FileMode.OpenOrCreate))
                 {
-                    FloatValue = br.ReadSingle();
-                    StringValue = br.ReadString();
-                    IntValue = br.ReadInt32();
-                    BoolValue = br.ReadBoolean();
+                    bf.Serialize(fs, pet);
+                    Console.WriteLine("Объект сериализован");
+                    Console.WriteLine();
                 }
-                Console.WriteLine("Из файла считано: ");
-                Console.WriteLine($"Дробь: {FloatValue}");
-                Console.WriteLine($"Строкаа: {StringValue}");
-                Console.WriteLine($"Целое число: {IntValue}");
-                Console.WriteLine($"Булевое значение: {BoolValue}");
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при сериализации: {ex.Message}");
+            }
+
+            try
+            {
+                using (FileStream fs = new FileStream("myPets.dat", FileMode.OpenOrCreate))
+                {
+                    Pet newPet = (Pet)bf.Deserialize(fs);
+                    Console.WriteLine("Объект десериализован");
+                    Console.WriteLine();
+                    Console.WriteLine($"Имя: {newPet.Name}\nВозраст: {newPet.Age}");
+                    Console.WriteLine();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при десериализации: {ex.Message}");
+            }
+        }
+    }
+    [Serializable]
+    public class Pet
+    {
+        public string Name { get; set; }
+        public int Age { get; set; }
+
+        public Pet(string name, int age)
+        {
+            Name = name;
+            Age = age;
         }
     }
 }
