@@ -10,16 +10,20 @@ namespace Module8
     {
         static void Main(string[] args)
         {
-            Pet pet = new Pet("Gerda", 2);
+            string name = "Vik";
+            long phoneNumber = 87052439520;
+            string email = "painandlove95@mail.ru";
+
+            Person person = new Person(name, phoneNumber, email);
             Console.WriteLine("Объект создан");
             Console.WriteLine();
 
             BinaryFormatter bf = new BinaryFormatter();
             try
             {
-                using (FileStream fs = new FileStream("myPets.dat", FileMode.OpenOrCreate))
+                using (FileStream fs = new FileStream("customers.dat", FileMode.OpenOrCreate))
                 {
-                    bf.Serialize(fs, pet);
+                    bf.Serialize(fs, person);
                     Console.WriteLine("Объект сериализован");
                     Console.WriteLine();
                 }
@@ -31,31 +35,38 @@ namespace Module8
 
             try
             {
-                using (FileStream fs = new FileStream("myPets.dat", FileMode.OpenOrCreate))
+                using (FileStream fs = new FileStream("customers.dat", FileMode.OpenOrCreate))
                 {
-                    Pet newPet = (Pet)bf.Deserialize(fs);
+                    Person newPerson = (Person)bf.Deserialize(fs);
                     Console.WriteLine("Объект десериализован");
                     Console.WriteLine();
-                    Console.WriteLine($"Имя: {newPet.Name}\nВозраст: {newPet.Age}");
-                    Console.WriteLine();
+                    Console.WriteLine(
+                        $"Имя: {newPerson.Name}" +
+                        $"\nНомер телефона: {newPerson.PhoneNumber}" +
+                        $"\nEmail: {newPerson.Email}");
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Ошибка при десериализации: {ex.Message}");
             }
+
+
+
         }
     }
     [Serializable]
-    public class Pet
+    public class Person
     {
         public string Name { get; set; }
-        public int Age { get; set; }
+        public long PhoneNumber { get; set; }
+        public string Email { get; set; }
 
-        public Pet(string name, int age)
+        public Person(string name, long phoneNumber, string email)
         {
             Name = name;
-            Age = age;
+            PhoneNumber = phoneNumber;
+            Email = email;
         }
     }
 }
