@@ -1,7 +1,7 @@
-﻿using Microsoft.VisualBasic.FileIO;
+﻿using Module8_2;
 using System;
 using System.IO;
-using static System.Net.WebRequestMethods;
+using System.Reflection;
 
 namespace Module8
 {
@@ -9,121 +9,45 @@ namespace Module8
     {
         static void Main(string[] args)
         {
-            string desktop = @"C:\Users\mrdoo\desktop";
-            string newDir = @"C:\Users\mrdoo\desktop\testFolder";
-
-            DirAndFilesCount(desktop);
-
-            DirCreate(newDir);
-            DirAndFilesCount(desktop);
-
-            MoveToRecycleBin(newDir);
-            DirAndFilesCount(desktop);
-
-        }
-        static void DrivesInformation()
-        {
             DriveInfo[] drives = DriveInfo.GetDrives();
-
-            foreach (DriveInfo drive in drives)
+            foreach (DriveInfo drive in drives.Where(d => d.DriveType == DriveType.Fixed))
             {
-                Console.WriteLine($"Название: {drive.Name}");
-                Console.WriteLine($"Тип: {drive.DriveType}");
-                if (drive.IsReady)
-                {
-                    Console.WriteLine($"Объем: {drive.TotalSize}");
-                    Console.WriteLine($"Осталось: {drive.TotalFreeSpace}");
-                    Console.WriteLine($"Метка: {drive.VolumeLabel}");
-                }
+                WriteDriveInfo(drive);
+                DirectoryInfo root = drive.RootDirectory;
+                DirectoryInfo[] folders = root.GetDirectories();
+
+                WriteFolderInfo(folders);
+
                 Console.WriteLine();
             }
         }
-        static void GetCatalogs()
-        {
-            string dirName = @"C:\";
 
-            if (Directory.Exists(dirName))
+        public static void WriteDriveInfo(DriveInfo drive)
+        {
+            Console.WriteLine($"Название: {drive.Name}");
+            Console.WriteLine($"Тип: {drive.DriveType}");
+            
+            if(drive.IsReady)
             {
-                Console.WriteLine("Папки:");
-                string[] dirs = Directory.GetDirectories(dirName);
-                foreach (string dir in dirs)
-                {
-                    Console.WriteLine(dir);
-                }
-                Console.WriteLine();
+                Console.WriteLine($"Объем: {drive.TotalSize}");
+                Console.WriteLine($"Свободно: {drive.TotalFreeSpace}");
+                Console.WriteLine($"Метка: {drive.VolumeLabel}");
+            }
 
-                Console.WriteLine("Файлы:");
-                string[] files = Directory.GetFiles(dirName);
-                foreach (string file in files)
-                {
-                    Console.WriteLine(file);
-                }
-            }
         }
-        static void DirAndFilesCount(string dir)
+        public static void WriteFolderInfo(DirectoryInfo[] folders)
         {
-            try
+            Console.WriteLine("Папки: ");
+            foreach (DirectoryInfo folder in folders)
             {
-                if (Directory.Exists(dir))
+                try
                 {
-                    string[] dirs = Directory.GetDirectories(dir);
-                    string[] files = Directory.GetFiles(dir);
-                    Console.WriteLine($"Всего папок и файлов: {files.Length + dirs.Length}");
-                    Console.WriteLine();
+                    Console.WriteLine($"Имя: {folder.Name} \tРазмер: {DirectoryExtension.DirSize(folder)}");
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-        static void DirCreate(string dir)
-        {
-            try
-            {
-                DirectoryInfo dirInfo = new DirectoryInfo(dir);
-                if (!dirInfo.Exists)
+                catch (Exception ex)
                 {
-                    dirInfo.Create();
-                    Console.WriteLine("Папка testFolder создана");
+                    Console.WriteLine($"Имя: {folder.Name} \t Не удалось рассчитать размер: {ex.Message}");
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
-        }
-        static void DirDelete()
-        {
-            try
-            {
-                DirectoryInfo dirInfo = new DirectoryInfo(@"C:\New Folder");
-
-                if (dirInfo.Exists)
-                {
-                    dirInfo.Delete();
-                    Console.WriteLine("Папка удалена");
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
-        }
-        static void MoveToRecycleBin(string dirDelete)
-        {
-            try
-            {
-                FileSystem.DeleteDirectory(
-                    dirDelete,
-                    UIOption.AllDialogs,
-                    RecycleOption.SendToRecycleBin,
-                    UICancelOption.ThrowException);
-                Console.WriteLine("Папка testFolder удалена в корзину.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка при удалении папки в корзину: {ex.Message}");
             }
         }
     }
