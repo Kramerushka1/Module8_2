@@ -7,63 +7,44 @@ namespace Module8
 {
     class Program
     {
+        const string SettingsFileName = "Settings.cfg";
         static void Main(string[] args)
         {
-            DriveInfo[] drives = DriveInfo.GetDrives();
-            foreach (DriveInfo drive in drives.Where(d => d.DriveType == DriveType.Fixed))
-            {
-                WriteDriveInfo(drive);
-                DirectoryInfo root = drive.RootDirectory;
-                DirectoryInfo[] folders = root.GetDirectories();
-
-                WriteFileInfo(root);
-                WriteFolderInfo(folders);
-
-                Console.WriteLine();
-            }
+            WriteValues();
+            ReadValues();
         }
 
-        public static void WriteDriveInfo(DriveInfo drive)
+        static void WriteValues()
         {
-            Console.WriteLine($"Название: {drive.Name}");
-            Console.WriteLine($"Тип: {drive.DriveType}");
-            
-            if(drive.IsReady)
+            using (BinaryWriter bw = new BinaryWriter(File.Open(SettingsFileName, FileMode.Create)))
             {
-                Console.WriteLine($"Объем: {drive.TotalSize}");
-                Console.WriteLine($"Свободно: {drive.TotalFreeSpace}");
-                Console.WriteLine($"Метка: {drive.VolumeLabel}");
+                bw.Write(20.666F);
+                bw.Write(@"Text string");
+                bw.Write(55);
+                bw.Write(false);
             }
+        }
+        static void ReadValues()
+        {
+            float FloatValue;
+            string StringValue;
+            int IntValue;
+            bool BoolValue;
 
-        }
-        public static void WriteFolderInfo(DirectoryInfo[] folders)
-        {
-            Console.WriteLine("Папки: ");
-            foreach (DirectoryInfo folder in folders)
+            if(File.Exists(SettingsFileName))
             {
-                try
+                using(BinaryReader br = new BinaryReader(File.Open(SettingsFileName, FileMode.Open)))
                 {
-                    Console.WriteLine($"Имя: {folder.Name} \n\tРазмер: {DirectoryExtension.DirSize(folder)} байт");
+                    FloatValue = br.ReadSingle();
+                    StringValue = br.ReadString();
+                    IntValue = br.ReadInt32();
+                    BoolValue = br.ReadBoolean();
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Имя: {folder.Name} \n\t Не удалось рассчитать размер: {ex.Message}");
-                }
-            }
-        }
-        public static void WriteFileInfo(DirectoryInfo rootFolder)
-        {
-            Console.WriteLine("Файлы: ");
-            foreach (FileInfo file in rootFolder.GetFiles())
-            {
-                try
-                {
-                    Console.WriteLine($"Имя: {file.Name} \n\tРазмер: {file.Length} байт");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Имя: {file.Name} \n\t Не удалось рассчитать размер: {ex.Message}");
-                }
+                Console.WriteLine("Из файла считано: ");
+                Console.WriteLine($"Дробь: {FloatValue}");
+                Console.WriteLine($"Строкаа: {StringValue}");
+                Console.WriteLine($"Целое число: {IntValue}");
+                Console.WriteLine($"Булевое значение: {BoolValue}");
             }
         }
     }
