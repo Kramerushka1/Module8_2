@@ -16,6 +16,7 @@ namespace Module8
                 DirectoryInfo root = drive.RootDirectory;
                 DirectoryInfo[] folders = root.GetDirectories();
 
+                WriteFileInfo(root);
                 WriteFolderInfo(folders);
 
                 Console.WriteLine();
@@ -42,11 +43,26 @@ namespace Module8
             {
                 try
                 {
-                    Console.WriteLine($"Имя: {folder.Name} \tРазмер: {DirectoryExtension.DirSize(folder)}");
+                    Console.WriteLine($"Имя: {folder.Name} \n\tРазмер: {DirectoryExtension.DirSize(folder)} байт");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Имя: {folder.Name} \t Не удалось рассчитать размер: {ex.Message}");
+                    Console.WriteLine($"Имя: {folder.Name} \n\t Не удалось рассчитать размер: {ex.Message}");
+                }
+            }
+        }
+        public static void WriteFileInfo(DirectoryInfo rootFolder)
+        {
+            Console.WriteLine("Файлы: ");
+            foreach (FileInfo file in rootFolder.GetFiles())
+            {
+                try
+                {
+                    Console.WriteLine($"Имя: {file.Name} \n\tРазмер: {file.Length} байт");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Имя: {file.Name} \n\t Не удалось рассчитать размер: {ex.Message}");
                 }
             }
         }
