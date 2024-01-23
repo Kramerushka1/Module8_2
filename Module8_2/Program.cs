@@ -2,71 +2,76 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Module8
 {
     class Program
     {
+        public static FileInfo configFile = new FileInfo(@"D:\C#\SystemConfig.txt");
         static void Main(string[] args)
         {
-            string name = "Vik";
-            long phoneNumber = 87052439520;
-            string email = "painandlove95@mail.ru";
-
-            Person person = new Person(name, phoneNumber, email);
-            Console.WriteLine("Объект создан");
-            Console.WriteLine();
-
-            BinaryFormatter bf = new BinaryFormatter();
-            try
+            DriveInfo[] drives = DriveInfo.GetDrives();
+            foreach (DriveInfo drive in drives.Where(d => d.DriveType == DriveType.Fixed))
             {
-                using (FileStream fs = new FileStream("customers.dat", FileMode.OpenOrCreate))
+                DirectoryInfo root = drive.RootDirectory;
+                DirectoryInfo[] folders = root.GetDirectories();
+
+                Console.WriteLine($"Сканируем диск {drive.Name}");
+
+                using (StreamWriter sw = configFile.AppendText())
                 {
-                    bf.Serialize(fs, person);
-                    Console.WriteLine("Объект сериализован");
-                    Console.WriteLine();
+                    WriteDriveInfo(drive, sw);
+                    WriteFileInfo(root, sw);
+                    WriteFolderInfo(folders, sw);
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка при сериализации: {ex.Message}");
-            }
 
-            try
-            {
-                using (FileStream fs = new FileStream("customers.dat", FileMode.OpenOrCreate))
-                {
-                    Person newPerson = (Person)bf.Deserialize(fs);
-                    Console.WriteLine("Объект десериализован");
-                    Console.WriteLine();
-                    Console.WriteLine(
-                        $"Имя: {newPerson.Name}" +
-                        $"\nНомер телефона: {newPerson.PhoneNumber}" +
-                        $"\nEmail: {newPerson.Email}");
-                }
+                Console.WriteLine("Операция выполнена");
+                Console.WriteLine("__________________");
             }
-            catch (Exception ex)
+        }
+
+        public static void WriteDriveInfo(DriveInfo drive, StreamWriter sw)
+        {
+            sw.WriteLine($"Название: {drive.Name}");
+            sw.WriteLine($"Тип: {drive.DriveType}");
+
+            if (drive.IsReady)
             {
-                Console.WriteLine($"Ошибка при десериализации: {ex.Message}");
+                sw.WriteLine($"Объем: {drive.TotalSize}");
+                sw.WriteLine($"Свободно: {drive.TotalFreeSpace}");
+                sw.WriteLine($"Метка: {drive.VolumeLabel}");
             }
-
-
 
         }
-    }
-    [Serializable]
-    public class Person
-    {
-        public string Name { get; set; }
-        public long PhoneNumber { get; set; }
-        public string Email { get; set; }
-
-        public Person(string name, long phoneNumber, string email)
+        public static void WriteFolderInfo(DirectoryInfo[] folders, StreamWriter sw)
         {
-            Name = name;
-            PhoneNumber = phoneNumber;
-            Email = email;
+            sw.WriteLine("Папки: ");
+            foreach (DirectoryInfo folder in folders)
+            {
+                try
+                {
+                    sw.WriteLine($"Имя: {folder.Name} \n\tРазмер: {DirectoryExtension.DirSize(folder)} байт");
+                }
+                catch (Exception ex)
+                {
+                    sw.WriteLine($"Имя: {folder.Name} \n\t Не удалось рассчитать размер: {ex.Message}");
+                }
+            }
+        }
+        public static void WriteFileInfo(DirectoryInfo rootFolder, StreamWriter sw)
+        {
+            sw.WriteLine("Файлы: ");
+            foreach (FileInfo file in rootFolder.GetFiles())
+            {
+                try
+                {
+                    sw.WriteLine($"Имя: {file.Name} \n\tРазмер: {file.Length} байт");
+                }
+                catch (Exception ex)
+                {
+                    sw.WriteLine($"Имя: {file.Name} \n\t Не удалось рассчитать размер: {ex.Message}");
+                }
+            }
         }
     }
 }
